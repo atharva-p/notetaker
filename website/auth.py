@@ -1,4 +1,7 @@
-from flask import Blueprint, render_template, request, flash
+from flask import Blueprint, render_template, request, flash, redirect, url_for
+from .models import User 
+from werkzeug.security import check_password_hash, generate_password_hash 
+from . import db
 
 auth = Blueprint('auth', __name__)
 
@@ -28,11 +31,17 @@ def sign_up():
         elif password != passwordConfirm: 
             flash('passwords don\'t match', category='error')
         else: 
-            # creating new user accounts
-            
+            # making a user object instance
+            new_user = User(first_name = first_name, email = email, password = generate_password_hash(password))
+
+            # adding this new user to the user table
+            db.session.add(new_user)
+            db.session.commit()
 
             flash('account created!!', category='success')
 
+            # redirect to the home page 
+            redirect(url_for('views.home'))
 
         
 
