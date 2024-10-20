@@ -1,0 +1,31 @@
+<!-- this template will be the exact same as base.html, and you can either add / override stuff from the base template -->
+{% extends "base.html" %} 
+
+{% block title %} Sign up {% endblock %} 
+
+{% block content %} 
+
+<form method="POST">
+    <h3 align="center">Sign up</h3>
+    <div class="form-group">
+        <label for="email">Email Address</label>
+        <input class="form-control" type="email" placeholder="Enter email" id="email" name="email">
+    </div>
+    <div class="form-group">
+        <label for="firstName">First name</label>
+        <input class="form-control" type="text" placeholder="Enter your first name" id="firstName" name="firstName">
+    </div>
+    <div class="form-group">
+        <label for="password">Set password</label>
+        <input class="form-control" type="password" placeholder="enter password" id="password" name="password">
+    </div>
+    <div class="form-group">
+        <label for="passwordConfirm">Confirm password</label>
+        <input class="form-control" type="password" placeholder="confirm password" id="passwordConfirm" name="passwordConfirm">
+    </div>
+
+    <br>
+    <button class="btn btn-primary" type="submit"> Submit</button>
+</form>
+
+{% endblock %}
