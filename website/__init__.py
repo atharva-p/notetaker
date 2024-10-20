@@ -1,6 +1,7 @@
 from flask import Flask 
 from flask_sqlalchemy import SQLAlchemy 
 from os import path
+from flask_login import LoginManager
 
 # database should be created outside of the context of the create_app function
 # initialize
@@ -17,6 +18,12 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_NAME}"
     db.init_app(app)
 
+    # login manager to keep the login settings and use flask_login api 
+    login_manager = LoginManager(app)
+
+    # the default view (endpoint / route) to send the user to in case of unauthorized actions
+    login_manager.login_view = 'auth.login'
+
     # get the blueprints here first 
     from .views import views
     from .auth import auth
@@ -31,6 +38,15 @@ def create_app():
     # classes and function definitions are initialised (but the functions themselves aren't run) 
     from .models import User, Note
     create_database(app)
+
+    # to set up the login manager
+    from .models import User, Note
+    
+    # set the user_loader so that we can restore the user login from the previous session
+    @login_manager.user_loader
+    def get_user(input_id):
+        user = User.query.get(int(input_id))
+        return user
 
     return app
 

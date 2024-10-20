@@ -2,18 +2,47 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from .models import User 
 from werkzeug.security import check_password_hash, generate_password_hash 
 from . import db
+from flask_login import login_user, login_required, logout_user, current_user
 
 auth = Blueprint('auth', __name__)
 
 # defining the login route 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template('login.html')
+    if request.method == 'POST': 
+        # get the form data 
+        email = request.form['email']
+        password = request.form['password']
+
+        # check if the user account exists by querying the email 
+        user = User.query.filter_by(email = email).first()
+
+        if user: 
+            # check the password 
+            authenticated  = check_password_hash(user.password, password)
+            if authenticated:
+                # login the user with flask login
+                login_user(user, remember = True)
+
+                flash('You have logged in', category='success')
+                return redirect(url_for('views.home'))
+            else: 
+                flash('Incorrect password, try again', category='error')
+        else: 
+            flash("You do not have an account, please sign up", category='error')
+            return redirect(url_for('auth.sign_up'))
+
+    else:
+        return render_template('login.html', user = current_user)
+
 
 # defining the logout route 
 @auth.route('/logout') 
+@login_required
 def logout():
-    return "<p> this is the log out page </p>"
+    logout_user()
+    return redirect(url_for('auth.login'))
+
 
 @auth.route('/sign-up', methods=['GET', 'POST'])
 def sign_up():
@@ -31,22 +60,29 @@ def sign_up():
         elif password != passwordConfirm: 
             flash('passwords don\'t match', category='error')
         else: 
-            # making a user object instance
-            new_user = User(first_name = first_name, email = email, password = generate_password_hash(password))
+            if User.query.filter_by(email=email).first():
+                flash('user already exists, log in instead', category='error')
+                return redirect(url_for('auth.login'))
+            else:
+                # making a user object instance
+                new_user = User(first_name = first_name, email = email, password = generate_password_hash(password))
 
-            # adding this new user to the user table
-            db.session.add(new_user)
-            db.session.commit()
+                # adding this new user to the user table
+                db.session.add(new_user)
+                db.session.commit()
 
-            flash('account created!!', category='success')
+                # login the user with flask login
+                login_user(new_user, remember = True)
 
-            # redirect to the home page 
-            redirect(url_for('views.home'))
+                flash('account created!!', category='success')
+
+                # redirect to the home page 
+                return redirect(url_for('views.home'))
 
         
 
 
-    return render_template('sign_up.html')
+    return render_template('sign_up.html', user = current_user)
 
 
 
